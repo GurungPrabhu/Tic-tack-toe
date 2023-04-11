@@ -1,168 +1,70 @@
 <template>
-  <div class="container">
-    <CBox
-      v-bind="mainStyles[colorMode]"
-      d="flex"
-      w="100vw"
-      h="100vh"
-      flex-dir="column"
-      justify-content="center"
-    >
-      <CHeading text-align="center" mb="4">
-        ⚡️ Hello chakra-ui/vue
-      </CHeading>
-      <CFlex justify="center" direction="column" align="center">
-        <CBox mb="3">
-          <CIconButton
-            mr="3"
-            :icon="colorMode === 'light' ? 'moon' : 'sun'"
-            :aria-label="`Switch to ${
-              colorMode === 'light' ? 'dark' : 'light'
-            } mode`"
-            @click="toggleColorMode"
-          />
-          <CButton
-            left-icon="info"
-            variant-color="blue"
-            @click="showToast"
+  <div>
+    <div v-if="tied">Game is tied</div>
+    <div v-if="winner">Game won {{ winner }}</div>
+
+    {{ activePlayer }}
+
+    <table>
+      <tbody>
+        <tr v-for="(row, x) in board">
+          <td
+            v-for="(cell, y) in row"
+            @click="makeMove(x, y)"
+            :class="{ active: isInWinningLine(x, y) }"
           >
-            Show Toast
-          </CButton>
-        </CBox>
-        <CAvatarGroup>
-          <CAvatar
-            name="Evan You"
-            alt="Evan You"
-            src="https://pbs.twimg.com/profile_images/1206997998900850688/cTXTQiHm_400x400.jpg"
-          >
-            <CAvatarBadge size="1.0em" bg="green.500" />
-          </CAvatar>
-          <CAvatar
-            name="Jonathan Bakebwa"
-            alt="Jonathan Bakebwa"
-            src="https://res.cloudinary.com/xtellar/image/upload/v1572857445/me_zqos4e.jpg"
-          >
-            <CAvatarBadge size="1.0em" bg="green.500" />
-          </CAvatar>
-          <CAvatar
-            name="Segun Adebayo"
-            alt="Segun Adebayo"
-            src="https://pbs.twimg.com/profile_images/1169353373012897802/skPUWd6e_400x400.jpg"
-          >
-            <CAvatarBadge size="1.0em" bg="green.500" />
-          </CAvatar>
-          <CAvatar src="pop">
-            <CAvatarBadge size="1.0em" border-color="papayawhip" bg="tomato" />
-          </CAvatar>
-        </CAvatarGroup>
-        <CButton
-          left-icon="close"
-          variant-color="red"
-          mt="3"
-          @click="showModal = true"
-        >
-          Delete Account
-        </CButton>
-        <CModal :is-open="showModal">
-          <CModalOverlay />
-          <CModalContent>
-            <CModalHeader>Are you sure?</CModalHeader>
-            <CModalBody>Deleting user cannot be undone</CModalBody>
-            <CModalFooter>
-              <CButton @click="showModal = false">
-                Cancel
-              </CButton>
-              <CButton
-                margin-left="3"
-                variant-color="red"
-                @click="showModal = false"
-              >
-                Delete User
-              </CButton>
-            </CModalFooter>
-            <CModalCloseButton @click="showModal = false" />
-          </CModalContent>
-        </CModal>
-      </CFlex>
-    </CBox>
+            {{ cell }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
-<script lang="js">
-import {
-  CBox,
-  CButton,
-  CAvatarGroup,
-  CAvatar,
-  CAvatarBadge,
-  CModal,
-  CModalContent,
-  CModalOverlay,
-  CModalHeader,
-  CModalFooter,
-  CModalBody,
-  CModalCloseButton,
-  CIconButton,
-  CFlex,
-  CHeading
-} from '@chakra-ui/vue'
-
+<script>
 export default {
-  name: 'IndexPage',
-  components: {
-    CBox,
-    CButton,
-    CAvatarGroup,
-    CAvatar,
-    CAvatarBadge,
-    CModal,
-    CModalContent,
-    CModalOverlay,
-    CModalHeader,
-    CModalFooter,
-    CModalBody,
-    CModalCloseButton,
-    CIconButton,
-    CFlex,
-    CHeading
-  },
-  inject: ['$chakraColorMode', '$toggleColorMode'],
-  data () {
-    return {
-      showModal: false,
-      mainStyles: {
-        dark: {
-          bg: 'gray.700',
-          color: 'whiteAlpha.900'
-        },
-        light: {
-          bg: 'white',
-          color: 'gray.900'
-        }
-      }
-    }
-  },
   computed: {
-    colorMode () {
-      return this.$chakraColorMode()
+    activePlayer() {
+      return this.$store.state.game.activePlayer;
     },
-    theme () {
-      return this.$chakraTheme()
+    winningLine() {
+      return this.$store.state.game.winningLine;
     },
-    toggleColorMode () {
-      return this.$toggleColorMode
-    }
+    winner() {
+      return this.$store.state.game.winner;
+    },
+    board() {
+      return this.$store.state.game.board;
+    },
+    tied() {
+      return this.$store.state.game.tied;
+    },
   },
   methods: {
-    showToast () {
-      this.$toast({
-        title: 'Account created.',
-        description: "We've created your account for you.",
-        status: 'success',
-        duration: 10000,
-        isClosable: true
-      })
-    }
-  }
-}
+    makeMove(x, y) {
+      this.$store.dispatch("game/makeMove", {
+        x,
+        y,
+        player: this.activePlayer,
+      });
+    },
+    isInWinningLine(xCoord, yCoord) {
+      return !!this.winningLine.find(
+        ({ x, y }) => x === xCoord && y === yCoord
+      );
+    },
+  },
+};
 </script>
+
+<style>
+td {
+  width: 50px;
+  height: 50px;
+  border: solid 1px black;
+}
+
+.active {
+  background: red;
+}
+</style>
